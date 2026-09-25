@@ -69,7 +69,12 @@ define postgresql::server::database (
     default => "TABLESPACE \"${tablespace}\"",
   }
 
-  postgresql_psql { "CREATE DATABASE \"${dbname}\"":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql_psql { "${_title_prefix}CREATE DATABASE \"${dbname}\"":
     command => "CREATE DATABASE \"${dbname}\" WITH ${template_option} ${encoding_option} ${locale_option} ${tablespace_option}",
     unless  => "SELECT 1 FROM pg_database WHERE datname = '${dbname}'",
     require => Postgresql::Server::Instance::Service[$instance],
@@ -77,43 +82,48 @@ define postgresql::server::database (
 
   # This will prevent users from connecting to the database unless they've been
   #  granted privileges.
-  ~> postgresql_psql { "REVOKE ${public_revoke_privilege} ON DATABASE \"${dbname}\" FROM public":
+  ~> postgresql_psql { "${_title_prefix}REVOKE ${public_revoke_privilege} ON DATABASE \"${dbname}\" FROM public":
+    command     => "REVOKE ${public_revoke_privilege} ON DATABASE \"${dbname}\" FROM public",
     refreshonly => true,
   }
 
-  Postgresql_psql["CREATE DATABASE \"${dbname}\""]
-  -> postgresql_psql { "UPDATE pg_database SET datistemplate = ${istemplate} WHERE datname = '${dbname}'":
-    unless => "SELECT 1 FROM pg_database WHERE datname = '${dbname}' AND datistemplate = ${istemplate}",
+  Postgresql_psql["${_title_prefix}CREATE DATABASE \"${dbname}\""]
+  -> postgresql_psql { "${_title_prefix}UPDATE pg_database SET datistemplate = ${istemplate} WHERE datname = '${dbname}'":
+    command => "UPDATE pg_database SET datistemplate = ${istemplate} WHERE datname = '${dbname}'",
+    unless  => "SELECT 1 FROM pg_database WHERE datname = '${dbname}' AND datistemplate = ${istemplate}",
   }
 
   if $comment {
-    Postgresql_psql["CREATE DATABASE \"${dbname}\""]
-    -> postgresql_psql { "COMMENT ON DATABASE \"${dbname}\" IS '${comment}'":
-      unless => "SELECT 1 FROM pg_catalog.pg_database d WHERE datname = '${dbname}' AND pg_catalog.shobj_description(d.oid, 'pg_database') = '${comment}'", # lint:ignore:140chars
-      db     => $dbname,
+    Postgresql_psql["${_title_prefix}CREATE DATABASE \"${dbname}\""]
+    -> postgresql_psql { "${_title_prefix}COMMENT ON DATABASE \"${dbname}\" IS '${comment}'":
+      command => "COMMENT ON DATABASE \"${dbname}\" IS '${comment}'",
+      unless  => "SELECT 1 FROM pg_catalog.pg_database d WHERE datname = '${dbname}' AND pg_catalog.shobj_description(d.oid, 'pg_database') = '${comment}'", # lint:ignore:140chars
+      db      => $dbname,
     }
   }
 
   if $owner {
-    postgresql_psql { "ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\"":
+    postgresql_psql { "${_title_prefix}ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\"":
+      command => "ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\"",
       unless  => "SELECT 1 FROM pg_database JOIN pg_roles rol ON datdba = rol.oid WHERE datname = '${dbname}' AND rolname = '${owner}'",
-      require => Postgresql_psql["CREATE DATABASE \"${dbname}\""],
+      require => Postgresql_psql["${_title_prefix}CREATE DATABASE \"${dbname}\""],
     }
 
     if defined(Postgresql::Server::Role[$owner]) {
-      Postgresql::Server::Role[$owner] -> Postgresql_psql["ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\""]
+      Postgresql::Server::Role[$owner] -> Postgresql_psql["${_title_prefix}ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\""]
     }
   }
 
   if $tablespace {
-    postgresql_psql { "ALTER DATABASE \"${dbname}\" SET ${tablespace_option}":
+    postgresql_psql { "${_title_prefix}ALTER DATABASE \"${dbname}\" SET ${tablespace_option}":
+      command => "ALTER DATABASE \"${dbname}\" SET ${tablespace_option}",
       unless  => "SELECT 1 FROM pg_database JOIN pg_tablespace spc ON dattablespace = spc.oid WHERE datname = '${dbname}' AND spcname = '${tablespace}'", # lint:ignore:140chars
-      require => Postgresql_psql["CREATE DATABASE \"${dbname}\""],
+      require => Postgresql_psql["${_title_prefix}CREATE DATABASE \"${dbname}\""],
     }
 
     if defined(Postgresql::Server::Tablespace[$tablespace]) {
       # The tablespace must be there, before we create the database.
-      Postgresql::Server::Tablespace[$tablespace] -> Postgresql_psql["CREATE DATABASE \"${dbname}\""]
+      Postgresql::Server::Tablespace[$tablespace] -> Postgresql_psql["${_title_prefix}CREATE DATABASE \"${dbname}\""]
     }
   }
 }
