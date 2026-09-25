@@ -37,10 +37,7 @@ define postgresql::server::reassign_owned_by (
              UNION ALL SELECT relname FROM pg_catalog.pg_class WHERE
                relkind='S' AND pg_get_userbyid(relowner) = '${old_role}'"
 
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
 
   postgresql_psql { "${_title_prefix}reassign_owned_by:${db}:${sql_command}":
     command          => $sql_command,

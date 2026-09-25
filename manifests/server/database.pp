@@ -69,10 +69,7 @@ define postgresql::server::database (
     default => "TABLESPACE \"${tablespace}\"",
   }
 
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
 
   postgresql_psql { "${_title_prefix}CREATE DATABASE \"${dbname}\"":
     command => "CREATE DATABASE \"${dbname}\" WITH ${template_option} ${encoding_option} ${locale_option} ${tablespace_option}",

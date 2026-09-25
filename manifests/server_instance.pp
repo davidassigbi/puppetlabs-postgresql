@@ -75,7 +75,7 @@ define postgresql::server_instance (
   }
 
   $roles.each |$rolename, $role| {
-    $role_title   = "${rolename} for instance ${name}"
+    $role_title   = "${postgresql::instance_title_prefix($name)}${rolename}"
     $role_details = $role + { 'username' => pick($role['username'], $rolename) }
     postgresql::server::role { $role_title:
       *          => $role_details,
@@ -106,7 +106,7 @@ define postgresql::server_instance (
     }
   }
   $databases_and_users.each |$database, $database_details| {
-    $db_title   = "${database} for instance ${name}"
+    $db_title   = "${postgresql::instance_title_prefix($name)}${database}"
     $db_details = $database_details + { 'dbname' => pick($database_details['dbname'], $database) }
     postgresql::server::db { $db_title:
       *          => $db_details,
@@ -117,7 +117,7 @@ define postgresql::server_instance (
     }
   }
   $databases.each |$database, $database_details| {
-    $database_title        = "${database} for instance ${name}"
+    $database_title        = "${postgresql::instance_title_prefix($name)}${database}"
     $database_full_details = $database_details + { 'dbname' => pick($database_details['dbname'], $database) }
     postgresql::server::database { $database_title:
       *        => $database_full_details,
@@ -128,7 +128,7 @@ define postgresql::server_instance (
     }
   }
   $database_grants.each |$db_grant_title, $dbgrants| {
-    $database_grant_title = "${db_grant_title} for instance ${name}"
+    $database_grant_title = "${postgresql::instance_title_prefix($name)}${db_grant_title}"
     postgresql::server::database_grant { $database_grant_title:
       *          => $dbgrants,
       psql_user  => $instance_user,
@@ -138,7 +138,7 @@ define postgresql::server_instance (
     }
   }
   $table_grants.each |$table_grant_title, $tgrants| {
-    $table_grant_define_title = "${table_grant_title} for instance ${name}"
+    $table_grant_define_title = "${postgresql::instance_title_prefix($name)}${table_grant_title}"
     postgresql::server::table_grant { $table_grant_define_title:
       *         => $tgrants,
       psql_user => $instance_user,

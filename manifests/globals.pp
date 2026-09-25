@@ -106,6 +106,19 @@
 #   Specifies working directory under which the psql command should be executed.
 #   May need to specify if '/tmp' is on volume mounted with noexec option.
 #
+# @param instance_title_prefix
+#   Controls how the resource titles of non-'main' PostgreSQL instances are
+#   prefixed to avoid title collisions between instances. The 'main' instance
+#   is never prefixed. Set to:
+#   * `true` (default) - prefix titles with `"<instance> "`.
+#   * `false` - never prefix titles (legacy behavior; duplicate titles across
+#     instances will fail).
+#   * A hash of instance name to prefix string - use the given prefix verbatim
+#     for that instance (include any trailing separator yourself, use an empty
+#     string to leave that instance unprefixed). Instances not present in the
+#     hash fall back to the automatic `"<instance> "` prefix.
+#   Must be consistent across all catalogs sharing resources by title.
+#
 class postgresql::globals (
   Optional[String[1]] $client_package_name         = undef,
   Optional[String[1]] $server_package_name         = undef,
@@ -174,6 +187,8 @@ class postgresql::globals (
   Optional[Boolean] $manage_package_repo           = undef,
   Boolean $manage_dnf_module                       = false,
   Optional[Stdlib::Absolutepath] $module_workdir   = undef,
+
+  Variant[Boolean, Hash[String[1], String]] $instance_title_prefix = true,
 ) {
   # We are determining this here, because it is needed by the package repo
   # class.

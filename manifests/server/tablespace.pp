@@ -29,10 +29,7 @@ define postgresql::server::tablespace (
   # If the connection settings do not contain a port, then use the local server port
   $port_override = pick($connect_settings['PGPORT'], $port)
 
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
 
   Postgresql_psql {
     psql_user        => $user,

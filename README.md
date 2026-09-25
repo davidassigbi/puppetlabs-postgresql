@@ -288,6 +288,33 @@ profiles::postgres::instances:
         auth_method: "peer"
         order: 7
 ```
+
+#### Instance resource title prefixes
+
+Resources managed for a non-'main' instance (`postgresql::server_instance` and the
+`postgresql::server::*` defines called with an `instance` parameter) get their titles
+prefixed with the instance name, so the same database/role/grant names can be used in
+several instances without duplicate title errors. The `main` instance is never
+prefixed. The prefix is configured globally via `postgresql::globals`:
+
+```puppet
+class { 'postgresql::globals':
+  # true (default): prefix titles with "<instance> "
+  # false: no prefix (collisions between instances will fail)
+  # hash: custom prefix per instance (empty string = no prefix for that instance,
+  #       unlisted instances fall back to the default "<instance> " prefix)
+  instance_title_prefix => {
+    'test1' => 't1_',
+    'test2' => '',
+  },
+}
+```
+
+The resolved prefix can be inspected with the `postgresql::instance_title_prefix()`
+function. If you reference instance resources by title (for example via
+`postgresql::server::extension`'s `database_resource_name`), the prefix must match
+across all catalogs.
+
 ### Create a database
 
 You can set up a variety of PostgreSQL databases with the `postgresql::server::db` defined type. For instance, to set up a database for PuppetDB:

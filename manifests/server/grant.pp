@@ -464,10 +464,7 @@ define postgresql::server::grant (
     default => sprintf($sql_command, $_privilege, $_object_type, $_togrant_object, $arguments, $_query_role),
   }
 
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
 
   postgresql_psql { "${_title_prefix}grant:${name}":
     command          => $grant_cmd,

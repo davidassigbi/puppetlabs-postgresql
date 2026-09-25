@@ -32,10 +32,7 @@ define postgresql::server::db (
   String[1] $psql_group = $postgresql::server::group,
   String[1] $instance = 'main',
 ) {
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
   $database_title = "${_title_prefix}${dbname}"
   $role_title     = "${_title_prefix}${user}"
   $grant_title    = "${_title_prefix}GRANT ${user} - ${grant} - ${dbname}"

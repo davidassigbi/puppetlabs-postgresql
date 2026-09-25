@@ -80,10 +80,7 @@ define postgresql::server::extension (
 
   $port_override = pick($connect_settings['PGPORT'], $port)
 
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
 
   postgresql_psql { "${_title_prefix}${database}: ${command}":
     psql_user        => $user,

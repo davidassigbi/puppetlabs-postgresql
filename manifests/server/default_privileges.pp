@@ -161,10 +161,7 @@ define postgresql::server::default_privileges (
   $unless_cmd = sprintf($_unless, $role, $_check_privilege, $_check_target_role, $_check_schema, $_check_type)
   $grant_cmd = sprintf($sql_command, $_target_role, $_schema, $_privilege, $_object_type, $role)
 
-  $_title_prefix = $instance ? {
-    'main'  => '',
-    default => "${instance} ",
-  }
+  $_title_prefix = postgresql::instance_title_prefix($instance)
 
   postgresql_psql { "${_title_prefix}default_privileges:${name}":
     command          => $grant_cmd,
