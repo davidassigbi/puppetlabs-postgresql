@@ -48,21 +48,26 @@ define postgresql::server::schema (
     instance         => $instance,
   }
 
-  postgresql_psql { "${db}: CREATE SCHEMA \"${schema}\"":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql_psql { "${_title_prefix}${db}: CREATE SCHEMA \"${schema}\"":
     command => "CREATE SCHEMA \"${schema}\"",
     unless  => "SELECT 1 FROM pg_namespace WHERE nspname = '${schema}'",
     require => Class['postgresql::server'],
   }
 
   if $owner {
-    postgresql_psql { "${db}: ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\"":
+    postgresql_psql { "${_title_prefix}${db}: ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\"":
       command => "ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\"",
       unless  => "SELECT 1 FROM pg_namespace JOIN pg_roles rol ON nspowner = rol.oid WHERE nspname = '${schema}' AND rolname = '${owner}'",
-      require => Postgresql_psql["${db}: CREATE SCHEMA \"${schema}\""],
+      require => Postgresql_psql["${_title_prefix}${db}: CREATE SCHEMA \"${schema}\""],
     }
 
     if defined(Postgresql::Server::Role[$owner]) {
-      Postgresql::Server::Role[$owner] -> Postgresql_psql["${db}: ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\""]
+      Postgresql::Server::Role[$owner] -> Postgresql_psql["${_title_prefix}${db}: ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\""]
     }
   }
 }

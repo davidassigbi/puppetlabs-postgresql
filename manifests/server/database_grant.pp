@@ -22,7 +22,12 @@ define postgresql::server::database_grant (
   Stdlib::Port $port = $postgresql::server::port,
   String[1] $instance = 'main',
 ) {
-  postgresql::server::grant { "database:${name}":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql::server::grant { "${_title_prefix}database:${name}":
     ensure           => $ensure,
     role             => $role,
     db               => $db,

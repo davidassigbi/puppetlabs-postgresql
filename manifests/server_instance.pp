@@ -75,8 +75,10 @@ define postgresql::server_instance (
   }
 
   $roles.each |$rolename, $role| {
-    postgresql::server::role { $rolename:
-      *          => $role,
+    $role_title   = "${rolename} for instance ${name}"
+    $role_details = $role + { 'username' => pick($role['username'], $rolename) }
+    postgresql::server::role { $role_title:
+      *          => $role_details,
       psql_user  => $instance_user,
       psql_group => $instance_group,
       port       => $config_settings['port'],
@@ -104,16 +106,21 @@ define postgresql::server_instance (
     }
   }
   $databases_and_users.each |$database, $database_details| {
-    postgresql::server::db { $database:
-      *          => $database_details,
+    $db_title   = "${database} for instance ${name}"
+    $db_details = $database_details + { 'dbname' => pick($database_details['dbname'], $database) }
+    postgresql::server::db { $db_title:
+      *          => $db_details,
       psql_user  => $instance_user,
       psql_group => $instance_group,
       port       => $config_settings['port'],
+      instance   => $instance_name,
     }
   }
   $databases.each |$database, $database_details| {
-    postgresql::server::database { $database:
-      *        => $database_details,
+    $database_title        = "${database} for instance ${name}"
+    $database_full_details = $database_details + { 'dbname' => pick($database_details['dbname'], $database) }
+    postgresql::server::database { $database_title:
+      *        => $database_full_details,
       user     => $instance_user,
       group    => $instance_group,
       port     => $config_settings['port'],
@@ -121,7 +128,8 @@ define postgresql::server_instance (
     }
   }
   $database_grants.each |$db_grant_title, $dbgrants| {
-    postgresql::server::database_grant { $db_grant_title:
+    $database_grant_title = "${db_grant_title} for instance ${name}"
+    postgresql::server::database_grant { $database_grant_title:
       *          => $dbgrants,
       psql_user  => $instance_user,
       psql_group => $instance_group,
@@ -130,7 +138,8 @@ define postgresql::server_instance (
     }
   }
   $table_grants.each |$table_grant_title, $tgrants| {
-    postgresql::server::table_grant { $table_grant_title:
+    $table_grant_define_title = "${table_grant_title} for instance ${name}"
+    postgresql::server::table_grant { $table_grant_define_title:
       *         => $tgrants,
       psql_user => $instance_user,
       port      => $config_settings['port'],

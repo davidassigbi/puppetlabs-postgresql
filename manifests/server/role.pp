@@ -57,6 +57,11 @@ define postgresql::server::role (
   $port_override = pick($connect_settings['PGPORT'], $port)
   $version = pick($connect_settings['DBVERSION'], postgresql::default('version'))
 
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
   Postgresql_psql {
     db               => $db,
     port             => $port_override,
@@ -66,7 +71,7 @@ define postgresql::server::role (
     connect_settings => $connect_settings,
     instance         => $instance,
     cwd              => $module_workdir,
-    require          => Postgresql_psql["CREATE ROLE ${username} ENCRYPTED PASSWORD ****"],
+    require          => Postgresql_psql["${_title_prefix}CREATE ROLE ${username} ENCRYPTED PASSWORD ****"],
   }
 
   if $ensure == 'present' {
@@ -101,53 +106,62 @@ define postgresql::server::role (
       $create_role_command = "CREATE ROLE \"${username}\" ${password_sql} ${login_sql} ${createrole_sql} ${createdb_sql} ${superuser_sql} ${replication_sql} CONNECTION LIMIT ${connection_limit}" # lint:ignore:140chars
     }
 
-    postgresql_psql { "CREATE ROLE ${username} ENCRYPTED PASSWORD ****":
+    postgresql_psql { "${_title_prefix}CREATE ROLE ${username} ENCRYPTED PASSWORD ****":
       command   => Sensitive($create_role_command),
       unless    => "SELECT 1 FROM pg_roles WHERE rolname = '${username}'",
       require   => undef,
       sensitive => true,
     }
 
-    postgresql_psql { "ALTER ROLE \"${username}\" ${superuser_sql}":
-      unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolsuper = ${superuser}",
+    postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" ${superuser_sql}":
+      command => "ALTER ROLE \"${username}\" ${superuser_sql}",
+      unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolsuper = ${superuser}",
     }
 
-    postgresql_psql { "ALTER ROLE \"${username}\" ${createdb_sql}":
-      unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolcreatedb = ${createdb}",
+    postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" ${createdb_sql}":
+      command => "ALTER ROLE \"${username}\" ${createdb_sql}",
+      unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolcreatedb = ${createdb}",
     }
 
-    postgresql_psql { "ALTER ROLE \"${username}\" ${createrole_sql}":
-      unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolcreaterole = ${createrole}",
+    postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" ${createrole_sql}":
+      command => "ALTER ROLE \"${username}\" ${createrole_sql}",
+      unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolcreaterole = ${createrole}",
     }
 
-    postgresql_psql { "ALTER ROLE \"${username}\" ${login_sql}":
-      unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolcanlogin = ${login}",
+    postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" ${login_sql}":
+      command => "ALTER ROLE \"${username}\" ${login_sql}",
+      unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolcanlogin = ${login}",
     }
 
-    postgresql_psql { "ALTER ROLE \"${username}\" ${inherit_sql}":
-      unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolinherit = ${inherit}",
+    postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" ${inherit_sql}":
+      command => "ALTER ROLE \"${username}\" ${inherit_sql}",
+      unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolinherit = ${inherit}",
     }
 
     if $valid_until {
-      postgresql_psql { "ALTER ROLE \"${username}\" VALID UNTIL '${valid_until}'":
-        unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolvaliduntil = '${valid_until}'",
+      postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" VALID UNTIL '${valid_until}'":
+        command => "ALTER ROLE \"${username}\" VALID UNTIL '${valid_until}'",
+        unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolvaliduntil = '${valid_until}'",
       }
     }
 
     if(versioncmp($version, '9.1') >= 0) {
       if $replication_sql == '' {
-        postgresql_psql { "ALTER ROLE \"${username}\" NOREPLICATION":
-          unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolreplication = ${replication}",
+        postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" NOREPLICATION":
+          command => "ALTER ROLE \"${username}\" NOREPLICATION",
+          unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolreplication = ${replication}",
         }
       } else {
-        postgresql_psql { "ALTER ROLE \"${username}\" ${replication_sql}":
-          unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolreplication = ${replication}",
+        postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" ${replication_sql}":
+          command => "ALTER ROLE \"${username}\" ${replication_sql}",
+          unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolreplication = ${replication}",
         }
       }
     }
 
-    postgresql_psql { "ALTER ROLE \"${username}\" CONNECTION LIMIT ${connection_limit}":
-      unless => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolconnlimit = ${connection_limit}",
+    postgresql_psql { "${_title_prefix}ALTER ROLE \"${username}\" CONNECTION LIMIT ${connection_limit}":
+      command => "ALTER ROLE \"${username}\" CONNECTION LIMIT ${connection_limit}",
+      unless  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}' AND rolconnlimit = ${connection_limit}",
     }
 
     $_hash = if $hash {
@@ -187,7 +201,7 @@ define postgresql::server::role (
         $pw_command = "ALTER ROLE \"${username}\" ENCRYPTED PASSWORD '${pwd_hash_sql}'"
         $unless_pw_command = "SELECT 1 FROM pg_shadow WHERE usename = '${username}' AND passwd = '${pwd_hash_sql}'"
       }
-      postgresql_psql { "ALTER ROLE ${username} ENCRYPTED PASSWORD ****":
+      postgresql_psql { "${_title_prefix}ALTER ROLE ${username} ENCRYPTED PASSWORD ****":
         command   => Sensitive($pw_command),
         unless    => Sensitive($unless_pw_command),
         sensitive => true,
@@ -195,7 +209,8 @@ define postgresql::server::role (
     }
   } else {
     # ensure == absent
-    postgresql_psql { "DROP ROLE \"${username}\"":
+    postgresql_psql { "${_title_prefix}DROP ROLE \"${username}\"":
+      command => "DROP ROLE \"${username}\"",
       onlyif  => "SELECT 1 FROM pg_roles WHERE rolname = '${username}'",
       require => undef,
     }

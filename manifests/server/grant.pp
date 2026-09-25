@@ -464,7 +464,12 @@ define postgresql::server::grant (
     default => sprintf($sql_command, $_privilege, $_object_type, $_togrant_object, $arguments, $_query_role),
   }
 
-  postgresql_psql { "grant:${name}":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql_psql { "${_title_prefix}grant:${name}":
     command          => $grant_cmd,
     db               => $on_db,
     port             => $port_override,
@@ -478,10 +483,10 @@ define postgresql::server::grant (
   }
 
   if defined(Postgresql::Server::Role[$role]) {
-    Postgresql::Server::Role[$role] -> Postgresql_psql["grant:${name}"]
+    Postgresql::Server::Role[$role] -> Postgresql_psql["${_title_prefix}grant:${name}"]
   }
 
   if defined(Postgresql::Server::Database[$db]) {
-    Postgresql::Server::Database[$db] -> Postgresql_psql["grant:${name}"]
+    Postgresql::Server::Database[$db] -> Postgresql_psql["${_title_prefix}grant:${name}"]
   }
 }

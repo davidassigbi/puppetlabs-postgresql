@@ -29,6 +29,11 @@ define postgresql::server::tablespace (
   # If the connection settings do not contain a port, then use the local server port
   $port_override = pick($connect_settings['PGPORT'], $port)
 
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
   Postgresql_psql {
     psql_user        => $user,
     psql_group       => $group,
@@ -63,20 +68,21 @@ define postgresql::server::tablespace (
     }
   }
 
-  postgresql_psql { "CREATE TABLESPACE \"${spcname}\"":
+  postgresql_psql { "${_title_prefix}CREATE TABLESPACE \"${spcname}\"":
     command => "CREATE TABLESPACE \"${spcname}\" LOCATION '${location}'",
     unless  => "SELECT 1 FROM pg_tablespace WHERE spcname = '${spcname}'",
     require => File[$location],
   }
 
   if $owner {
-    postgresql_psql { "ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\"":
+    postgresql_psql { "${_title_prefix}ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\"":
+      command => "ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\"",
       unless  => "SELECT 1 FROM pg_tablespace JOIN pg_roles rol ON spcowner = rol.oid WHERE spcname = '${spcname}' AND rolname = '${owner}'", # lint:ignore:140chars
-      require => Postgresql_psql["CREATE TABLESPACE \"${spcname}\""],
+      require => Postgresql_psql["${_title_prefix}CREATE TABLESPACE \"${spcname}\""],
     }
 
     if defined(Postgresql::Server::Role[$owner]) {
-      Postgresql::Server::Role[$owner] -> Postgresql_psql["ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\""]
+      Postgresql::Server::Role[$owner] -> Postgresql_psql["${_title_prefix}ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\""]
     }
   }
 }

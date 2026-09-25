@@ -32,8 +32,17 @@ define postgresql::server::db (
   String[1] $psql_group = $postgresql::server::group,
   String[1] $instance = 'main',
 ) {
-  if ! defined(Postgresql::Server::Database[$dbname]) {
-    postgresql::server::database { $dbname:
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+  $database_title = "${_title_prefix}${dbname}"
+  $role_title     = "${_title_prefix}${user}"
+  $grant_title    = "${_title_prefix}GRANT ${user} - ${grant} - ${dbname}"
+
+  if ! defined(Postgresql::Server::Database[$database_title]) {
+    postgresql::server::database { $database_title:
+      dbname     => $dbname,
       comment    => $comment,
       encoding   => $encoding,
       tablespace => $tablespace,
@@ -48,19 +57,20 @@ define postgresql::server::db (
     }
   }
 
-  if ! defined(Postgresql::Server::Role[$user]) {
-    postgresql::server::role { $user:
+  if ! defined(Postgresql::Server::Role[$role_title]) {
+    postgresql::server::role { $role_title:
+      username      => $user,
       password_hash => $password,
       port          => $port,
       psql_user     => $psql_user,
       psql_group    => $psql_group,
-      before        => Postgresql::Server::Database[$dbname],
+      before        => Postgresql::Server::Database[$database_title],
       instance      => $instance,
     }
   }
 
-  if ! defined(Postgresql::Server::Database_grant["GRANT ${user} - ${grant} - ${dbname}"]) {
-    postgresql::server::database_grant { "GRANT ${user} - ${grant} - ${dbname}":
+  if ! defined(Postgresql::Server::Database_grant[$grant_title]) {
+    postgresql::server::database_grant { $grant_title:
       privilege  => $grant,
       db         => $dbname,
       role       => $user,
@@ -72,6 +82,6 @@ define postgresql::server::db (
   }
 
   if ($tablespace != undef and defined(Postgresql::Server::Tablespace[$tablespace])) {
-    Postgresql::Server::Tablespace[$tablespace] -> Postgresql::Server::Database[$name]
+    Postgresql::Server::Tablespace[$tablespace] -> Postgresql::Server::Database[$database_title]
   }
 }

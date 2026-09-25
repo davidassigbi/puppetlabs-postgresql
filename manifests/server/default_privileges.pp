@@ -161,7 +161,12 @@ define postgresql::server::default_privileges (
   $unless_cmd = sprintf($_unless, $role, $_check_privilege, $_check_target_role, $_check_schema, $_check_type)
   $grant_cmd = sprintf($sql_command, $_target_role, $_schema, $_privilege, $_object_type, $role)
 
-  postgresql_psql { "default_privileges:${name}":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql_psql { "${_title_prefix}default_privileges:${name}":
     command          => $grant_cmd,
     db               => $db,
     port             => $port_override,
@@ -175,10 +180,10 @@ define postgresql::server::default_privileges (
   }
 
   if defined(Postgresql::Server::Role[$role]) {
-    Postgresql::Server::Role[$role] -> Postgresql_psql["default_privileges:${name}"]
+    Postgresql::Server::Role[$role] -> Postgresql_psql["${_title_prefix}default_privileges:${name}"]
   }
 
   if defined(Postgresql::Server::Database[$db]) {
-    Postgresql::Server::Database[$db] -> Postgresql_psql["default_privileges:${name}"]
+    Postgresql::Server::Database[$db] -> Postgresql_psql["${_title_prefix}default_privileges:${name}"]
   }
 }

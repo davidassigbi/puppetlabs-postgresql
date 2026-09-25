@@ -80,7 +80,12 @@ define postgresql::server::extension (
 
   $port_override = pick($connect_settings['PGPORT'], $port)
 
-  postgresql_psql { "${database}: ${command}":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql_psql { "${_title_prefix}${database}: ${command}":
     psql_user        => $user,
     psql_group       => $group,
     psql_path        => $psql_path,
@@ -97,7 +102,7 @@ define postgresql::server::extension (
   if $ensure == 'present' and $schema {
     $set_schema_command = "ALTER EXTENSION \"${extension}\" SET SCHEMA \"${schema}\""
 
-    postgresql_psql { "${database}: ${set_schema_command}":
+    postgresql_psql { "${_title_prefix}${database}: ${set_schema_command}":
       command          => $set_schema_command,
       unless           => @("END")
         SELECT 1
@@ -117,10 +122,10 @@ define postgresql::server::extension (
       db               => $database,
       port             => $port_override,
       instance         => $instance,
-      require          => Postgresql_psql["${database}: ${command}"],
+      require          => Postgresql_psql["${_title_prefix}${database}: ${command}"],
     }
 
-    Postgresql::Server::Schema <| db == $database and schema == $schema |> -> Postgresql_psql["${database}: ${set_schema_command}"]
+    Postgresql::Server::Schema <| db == $database and schema == $schema |> -> Postgresql_psql["${_title_prefix}${database}: ${set_schema_command}"]
   }
 
   if $package_name {
@@ -142,7 +147,7 @@ define postgresql::server::extension (
       $alter_extension_sql = "ALTER EXTENSION \"${extension}\" UPDATE TO '${version}'"
       $update_unless = "SELECT 1 FROM pg_extension WHERE extname='${extension}' AND extversion='${version}'"
     }
-    postgresql_psql { "${database}: ${alter_extension_sql}":
+    postgresql_psql { "${_title_prefix}${database}: ${alter_extension_sql}":
       db               => $database,
       port             => $port_override,
       psql_user        => $user,

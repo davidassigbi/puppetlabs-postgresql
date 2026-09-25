@@ -37,7 +37,12 @@ define postgresql::server::reassign_owned_by (
              UNION ALL SELECT relname FROM pg_catalog.pg_class WHERE
                relkind='S' AND pg_get_userbyid(relowner) = '${old_role}'"
 
-  postgresql_psql { "reassign_owned_by:${db}:${sql_command}":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql_psql { "${_title_prefix}reassign_owned_by:${db}:${sql_command}":
     command          => $sql_command,
     db               => $db,
     port             => $port_override,
@@ -50,13 +55,13 @@ define postgresql::server::reassign_owned_by (
   }
 
   if defined(Postgresql::Server::Role[$old_role]) {
-    Postgresql::Server::Role[$old_role] -> Postgresql_psql["reassign_owned_by:${db}:${sql_command}"]
+    Postgresql::Server::Role[$old_role] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
   }
   if($new_role != undef and defined(Postgresql::Server::Role[$new_role])) {
-    Postgresql::Server::Role[$new_role] -> Postgresql_psql["reassign_owned_by:${db}:${sql_command}"]
+    Postgresql::Server::Role[$new_role] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
   }
 
   if defined(Postgresql::Server::Database[$db]) {
-    Postgresql::Server::Database[$db] -> Postgresql_psql["reassign_owned_by:${db}:${sql_command}"]
+    Postgresql::Server::Database[$db] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
   }
 }

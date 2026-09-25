@@ -27,7 +27,12 @@ define postgresql::server::table_grant (
   Boolean                                             $onlyif_exists    = false,
   String[1]                                           $instance         = 'main',
 ) {
-  postgresql::server::grant { "table:${name}":
+  $_title_prefix = $instance ? {
+    'main'  => '',
+    default => "${instance} ",
+  }
+
+  postgresql::server::grant { "${_title_prefix}table:${name}":
     ensure           => $ensure,
     role             => $role,
     db               => $db,
