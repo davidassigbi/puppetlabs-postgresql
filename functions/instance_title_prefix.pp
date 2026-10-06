@@ -34,5 +34,5 @@ function postgresql::instance_title_prefix(String[1] $instance) >> String {
     return(pick_default($config[$instance], "${instance}|"))
   }
 
-  "${instance} "
+  "${instance}|"
 }
