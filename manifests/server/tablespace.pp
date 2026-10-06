@@ -78,8 +78,8 @@ define postgresql::server::tablespace (
       require => Postgresql_psql["${_title_prefix}CREATE TABLESPACE \"${spcname}\""],
     }
 
-    if defined(Postgresql::Server::Role[$owner]) {
-      Postgresql::Server::Role[$owner] -> Postgresql_psql["${_title_prefix}ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\""]
+    if defined(Postgresql::Server::Role["${_title_prefix}${owner}"]) {
+      Postgresql::Server::Role["${_title_prefix}${owner}"] -> Postgresql_psql["${_title_prefix}ALTER TABLESPACE \"${spcname}\" OWNER TO \"${owner}\""]
     }
   }
 }

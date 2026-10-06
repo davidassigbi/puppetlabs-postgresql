@@ -20,8 +20,10 @@
 #   activated and removed when the extension is deactivated. To override this behavior, set the ensure value for the package.
 # @param port Port to use when connecting.
 # @param connect_settings Specifies a hash of environment variables used when connecting to a remote server.
-# @param database_resource_name Specifies the resource name of the DB being managed. Defaults to the parameter $database, if left blank.
 # @param instance The name of the Postgresql database instance.
+# @param database_resource_name Specifies the resource name of the DB being managed. Defaults to the
+#   instance-prefixed value of the parameter $database, so the reference resolves to the database
+#   resource owned by the same instance. Set it explicitly to override.
 # @param psql_path Specifies the path to the psql command.
 # @param user Overrides the default PostgreSQL super user and owner of PostgreSQL related files in the file system.
 # @param group Overrides the default postgres user group to be used for related files in the file system.
@@ -35,8 +37,8 @@ define postgresql::server::extension (
   Optional[String[1]]                                 $package_name           = undef,
   Stdlib::Port                                        $port                   = postgresql::default('port'),
   Hash                                                $connect_settings       = postgresql::default('default_connect_settings'),
-  String[1]                                           $database_resource_name = $database,
   String[1]                                           $instance               = 'main',
+  String[1]                                           $database_resource_name = "${postgresql::instance_title_prefix($instance)}${database}",
   String[1]                                           $user                   = postgresql::default('user'),
   String[1]                                           $group                  = postgresql::default('group'),
   Stdlib::Absolutepath                                $psql_path              = postgresql::default('psql_path'),
@@ -122,7 +124,7 @@ define postgresql::server::extension (
       require          => Postgresql_psql["${_title_prefix}${database}: ${command}"],
     }
 
-    Postgresql::Server::Schema <| db == $database and schema == $schema |> -> Postgresql_psql["${_title_prefix}${database}: ${set_schema_command}"]
+    Postgresql::Server::Schema <| db == $database and schema == $schema and instance == $instance |> -> Postgresql_psql["${_title_prefix}${database}: ${set_schema_command}"]
   }
 
   if $package_name {

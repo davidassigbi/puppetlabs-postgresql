@@ -75,7 +75,7 @@ define postgresql::server::db (
       psql_user  => $psql_user,
       psql_group => $psql_group,
       instance   => $instance,
-    } -> Postgresql_conn_validator<| db_name == $dbname |>
+    } -> Postgresql_conn_validator<| db_name == $dbname and title == "validate_service_is_running_instance_${instance}" |>
   }
 
   if ($tablespace != undef and defined(Postgresql::Server::Tablespace[$tablespace])) {

@@ -106,8 +106,8 @@ define postgresql::server::database (
       require => Postgresql_psql["${_title_prefix}CREATE DATABASE \"${dbname}\""],
     }
 
-    if defined(Postgresql::Server::Role[$owner]) {
-      Postgresql::Server::Role[$owner] -> Postgresql_psql["${_title_prefix}ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\""]
+    if defined(Postgresql::Server::Role["${_title_prefix}${owner}"]) {
+      Postgresql::Server::Role["${_title_prefix}${owner}"] -> Postgresql_psql["${_title_prefix}ALTER DATABASE \"${dbname}\" OWNER TO \"${owner}\""]
     }
   }
 

@@ -479,11 +479,11 @@ define postgresql::server::grant (
     onlyif           => $_onlyif,
   }
 
-  if defined(Postgresql::Server::Role[$role]) {
-    Postgresql::Server::Role[$role] -> Postgresql_psql["${_title_prefix}grant:${name}"]
+  if defined(Postgresql::Server::Role["${_title_prefix}${role}"]) {
+    Postgresql::Server::Role["${_title_prefix}${role}"] -> Postgresql_psql["${_title_prefix}grant:${name}"]
   }
 
-  if defined(Postgresql::Server::Database[$db]) {
-    Postgresql::Server::Database[$db] -> Postgresql_psql["${_title_prefix}grant:${name}"]
+  if defined(Postgresql::Server::Database["${_title_prefix}${db}"]) {
+    Postgresql::Server::Database["${_title_prefix}${db}"] -> Postgresql_psql["${_title_prefix}grant:${name}"]
   }
 }

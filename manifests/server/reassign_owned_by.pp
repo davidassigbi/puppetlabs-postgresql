@@ -51,14 +51,14 @@ define postgresql::server::reassign_owned_by (
     onlyif           => $onlyif,
   }
 
-  if defined(Postgresql::Server::Role[$old_role]) {
-    Postgresql::Server::Role[$old_role] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
+  if defined(Postgresql::Server::Role["${_title_prefix}${old_role}"]) {
+    Postgresql::Server::Role["${_title_prefix}${old_role}"] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
   }
-  if($new_role != undef and defined(Postgresql::Server::Role[$new_role])) {
-    Postgresql::Server::Role[$new_role] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
+  if($new_role != undef and defined(Postgresql::Server::Role["${_title_prefix}${new_role}"])) {
+    Postgresql::Server::Role["${_title_prefix}${new_role}"] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
   }
 
-  if defined(Postgresql::Server::Database[$db]) {
-    Postgresql::Server::Database[$db] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
+  if defined(Postgresql::Server::Database["${_title_prefix}${db}"]) {
+    Postgresql::Server::Database["${_title_prefix}${db}"] -> Postgresql_psql["${_title_prefix}reassign_owned_by:${db}:${sql_command}"]
   }
 }

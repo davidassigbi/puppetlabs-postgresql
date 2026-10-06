@@ -32,7 +32,7 @@ define postgresql::server::schema (
   Stdlib::Absolutepath $module_workdir   = $postgresql::server::module_workdir,
   String[1]            $instance         = 'main',
 ) {
-  Postgresql::Server::Db <| dbname == $db |> -> Postgresql::Server::Schema[$name]
+  Postgresql::Server::Db <| dbname == $db and instance == $instance |> -> Postgresql::Server::Schema[$name]
 
   # If the connection settings do not contain a port, then use the local server port
   $port_override = pick($connect_settings['PGPORT'], $port)
@@ -63,8 +63,8 @@ define postgresql::server::schema (
       require => Postgresql_psql["${_title_prefix}${db}: CREATE SCHEMA \"${schema}\""],
     }
 
-    if defined(Postgresql::Server::Role[$owner]) {
-      Postgresql::Server::Role[$owner] -> Postgresql_psql["${_title_prefix}${db}: ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\""]
+    if defined(Postgresql::Server::Role["${_title_prefix}${owner}"]) {
+      Postgresql::Server::Role["${_title_prefix}${owner}"] -> Postgresql_psql["${_title_prefix}${db}: ALTER SCHEMA \"${schema}\" OWNER TO \"${owner}\""]
     }
   }
 }

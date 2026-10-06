@@ -47,10 +47,10 @@ define postgresql::server::grant_role (
   if empty($connect_settings) {
     Class['postgresql::server'] -> Postgresql_psql["${_title_prefix}grant_role:${name}"]
   }
-  if defined(Postgresql::Server::Role[$role]) {
-    Postgresql::Server::Role[$role] -> Postgresql_psql["${_title_prefix}grant_role:${name}"]
+  if defined(Postgresql::Server::Role["${_title_prefix}${role}"]) {
+    Postgresql::Server::Role["${_title_prefix}${role}"] -> Postgresql_psql["${_title_prefix}grant_role:${name}"]
   }
-  if defined(Postgresql::Server::Role[$group]) {
-    Postgresql::Server::Role[$group] -> Postgresql_psql["${_title_prefix}grant_role:${name}"]
+  if defined(Postgresql::Server::Role["${_title_prefix}${group}"]) {
+    Postgresql::Server::Role["${_title_prefix}${group}"] -> Postgresql_psql["${_title_prefix}grant_role:${name}"]
   }
 }

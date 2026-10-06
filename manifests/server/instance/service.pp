@@ -64,7 +64,7 @@ define postgresql::server::instance::service (
 
       Anchor["postgresql::server::service::begin::${name}"]
       -> Service["postgresqld_instance_${name}"]
-      -> Postgresql::Server::Database <| title == $default_database |>
+      -> Postgresql::Server::Database <| dbname == $default_database and instance == $name |>
       -> Postgresql_conn_validator["validate_service_is_running_instance_${name}"]
       -> Anchor["postgresql::server::service::end::${name}"]
     }
