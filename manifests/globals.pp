@@ -110,13 +110,13 @@
 #   Controls how the resource titles of non-'main' PostgreSQL instances are
 #   prefixed to avoid title collisions between instances. The 'main' instance
 #   is never prefixed. Set to:
-#   * `true` (default) - prefix titles with `"<instance> "`.
+#   * `true` (default) - prefix titles with `"<instance>|"`.
 #   * `false` - never prefix titles (legacy behavior; duplicate titles across
 #     instances will fail).
 #   * A hash of instance name to prefix string - use the given prefix verbatim
 #     for that instance (include any trailing separator yourself, use an empty
 #     string to leave that instance unprefixed). Instances not present in the
-#     hash fall back to the automatic `"<instance> "` prefix.
+#     hash fall back to the automatic `"<instance>|"` prefix.
 #   Must be consistent across all catalogs sharing resources by title.
 #
 class postgresql::globals (

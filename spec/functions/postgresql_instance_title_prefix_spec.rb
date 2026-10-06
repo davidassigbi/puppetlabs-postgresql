@@ -19,7 +19,7 @@ describe 'postgresql::instance_title_prefix' do
 
   context 'with default configuration (true)' do
     it { is_expected.to run.with_params('main').and_return('') }
-    it { is_expected.to run.with_params('inst1').and_return('inst1 ') }
+    it { is_expected.to run.with_params('inst1').and_return('inst1|') }
   end
 
   context 'with instance_title_prefix set to false' do
@@ -50,6 +50,6 @@ describe 'postgresql::instance_title_prefix' do
     it { is_expected.to run.with_params('main').and_return('') }
     it { is_expected.to run.with_params('inst1').and_return('i1_') }
     it { is_expected.to run.with_params('inst2').and_return('') }
-    it { is_expected.to run.with_params('inst3').and_return('inst3 ') }
+    it { is_expected.to run.with_params('inst3').and_return('inst3|') }
   end
 end

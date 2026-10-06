@@ -299,10 +299,10 @@ prefixed. The prefix is configured globally via `postgresql::globals`:
 
 ```puppet
 class { 'postgresql::globals':
-  # true (default): prefix titles with "<instance> "
+  # true (default): prefix titles with "<instance>|"
   # false: no prefix (collisions between instances will fail)
   # hash: custom prefix per instance (empty string = no prefix for that instance,
-  #       unlisted instances fall back to the default "<instance> " prefix)
+  #       unlisted instances fall back to the default "<instance>|" prefix)
   instance_title_prefix => {
     'test1' => 't1_',
     'test2' => '',

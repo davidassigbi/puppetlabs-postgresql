@@ -3,14 +3,14 @@
 # The 'main' instance is never prefixed, keeping its resource titles identical
 # to the single-instance behavior. For other instances, the prefix is driven by
 # the `$instance_title_prefix` parameter of the `postgresql::globals` class:
-# * `true` (default) - the automatic prefix `"<instance> "`.
+# * `true` (default) - the automatic prefix `"<instance>|"`.
 # * `false` - no prefix at all.
 # * A hash of instance name to prefix - the given prefix for listed instances,
 #   the automatic prefix for the others.
 #
 # @example
 #   postgresql::instance_title_prefix('main')  # ''
-#   postgresql::instance_title_prefix('inst1') # 'inst1 ' (default)
+#   postgresql::instance_title_prefix('inst1') # 'inst1|' (default)
 #
 # @param instance
 #   The name of the server instance.
