@@ -31,7 +31,7 @@ function postgresql::instance_title_prefix(String[1] $instance) >> String {
   }
 
   if $config =~ Hash {
-    return(pick_default($config[$instance], "${instance} "))
+    return(pick_default($config[$instance], "${instance}|"))
   }
 
   "${instance} "
